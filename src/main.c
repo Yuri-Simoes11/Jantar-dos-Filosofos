@@ -8,6 +8,8 @@
 // Configurações
 #define PRIORIDADE 5
 #define STACK_SIZE 1024
+#define PADEIRO 1000
+#define CLIENTE 1500
 
 // Recurso compartilhado
 volatile int saldo_vitrine = 0;
@@ -33,7 +35,7 @@ void thread_A(void *p1, void *p2, void *p3)
 		printk("Pao Pronto, porem vitrine cheia\n");
 	}
 
-	k_msleep(1000);
+	k_msleep(PADEIRO);
 
     }
 
@@ -60,7 +62,7 @@ void thread_B(void *p1, void *p2, void *p3)
 		printk("Cliente quer pao mas nao ha na vitrine\n");
 	}
 
-	k_msleep(1500);
+	k_msleep(CLIENTE);
 
 	}
 
