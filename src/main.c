@@ -5,19 +5,12 @@
 #include <stdint.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(race, LOG_LEVEL_INF);
-
 // Configurações
-#define ITERACOES 1000
 #define PRIORIDADE 5
 #define STACK_SIZE 1024
 
 // Recurso compartilhado
-volatile int contador = 0;
-
-// Sincronização
-K_SEM_DEFINE(fim_sem, 0, 2);
-K_MUTEX_DEFINE(contador_mutex);
+volatile int saldo_vitrine = 0;
 
 // ----------------------------------------------------
 // THREAD A
@@ -28,19 +21,20 @@ void thread_A(void *p1, void *p2, void *p3)
     ARG_UNUSED(p2);
     ARG_UNUSED(p3);
 
-    for (int i = 0; i < ITERACOES; i++) {
+	while(1){
 
-        k_mutex_lock(&contador_mutex, K_FOREVER);
+	if(saldo_vitrine < 10){
+	    saldo_vitrine++;
+		printk("Pao Pronto        (Vitrine: %d)\n", saldo_vitrine);
+	}      
+	else{
+		printk("Pao Pronto, porem vitrine cheia\n");
+	}
 
-        int temp = contador;
-        contador = temp + 1;
+	k_msleep(1000);
 
-        k_mutex_unlock(&contador_mutex);
     }
 
-    LOG_INF("Thread A finalizou.");
-
-    k_sem_give(&fim_sem);
 }
 
 // ----------------------------------------------------
@@ -52,19 +46,20 @@ void thread_B(void *p1, void *p2, void *p3)
     ARG_UNUSED(p2);
     ARG_UNUSED(p3);
 
-    for (int i = 0; i < ITERACOES; i++) {
+	while(1){
 
-        k_mutex_lock(&contador_mutex, K_FOREVER);
+	if(saldo_vitrine >= 1){
+	    saldo_vitrine--;
+		printk("Cliente Pegou Pao (Vitrine: %d)\n", saldo_vitrine);
+	}
+	else{
+		printk("Cliente quer pao mas nao ha na vitrine\n");
+	}
 
-        int temp = contador;
-        contador = temp + 1;
+	k_msleep(1500);
 
-        k_mutex_unlock(&contador_mutex);
-    }
+	}
 
-    LOG_INF("Thread B finalizou.");
-
-    k_sem_give(&fim_sem);
 }
 
 // ----------------------------------------------------
@@ -81,21 +76,9 @@ K_THREAD_DEFINE(b_tid, STACK_SIZE, thread_B,
 // ----------------------------------------------------
 // FUNÇÃO PRINCIPAL
 // ----------------------------------------------------
-void main(void)
-{
-    LOG_INF("=== DEMONSTRACAO DE MUTEX ===");
-    LOG_INF("Contador inicial: %d", contador);
+void main(void) {
 
-    // Aguarda a finalização das duas threads
-    k_sem_take(&fim_sem, K_FOREVER);
-    k_sem_take(&fim_sem, K_FOREVER);
-
-    LOG_INF("Contador final: %d", contador);
-    LOG_INF("Valor esperado: %d", ITERACOES * 2);
-
-    if (contador == ITERACOES * 2) {
-        LOG_INF("SUCESSO: contador correto!");
-    } else {
-        LOG_ERR("ERRO: houve perda de atualizacoes!");
-    }
+	printk("Padaria Aberta: %d pães\n", saldo_vitrine);
+    // A thread principal permanece suspensa
+    k_sleep(K_FOREVER);
 }
