@@ -23,19 +23,24 @@ void thread_A(void *p1, void *p2, void *p3)
     ARG_UNUSED(p2);
     ARG_UNUSED(p3);
 	int total_paes = 0;
+	int aux = 0;
 
 	while(1){
 
+	aux = saldo_vitrine;
+
 	if(saldo_vitrine < 10){
-	    saldo_vitrine++;
+	    aux++;
 		total_paes++;
-		printk("Pao Pronto #%d        (Vitrine: %d)\n", total_paes, saldo_vitrine);
+		saldo_vitrine = aux;
+		printk("Pao Pronto #%d        (Vitrine: %d)\n", 
+			    total_paes, saldo_vitrine);
 	}                     
 	else{
 		printk("Pao Pronto, porem vitrine cheia\n");
 	}
 
-	k_msleep(PADEIRO);
+	k_busy_wait(PADEIRO*1000);
 
     }
 
@@ -50,13 +55,18 @@ void thread_B(void *p1, void *p2, void *p3)
     ARG_UNUSED(p2);
     ARG_UNUSED(p3);
 	int paes_pegos = 0;
+	int aux1 = 0;
 
 	while(1){
 
+	aux1 = saldo_vitrine;
+
 	if(saldo_vitrine >= 1){
-	    saldo_vitrine--;
+	    aux1--;
 		paes_pegos++;
-		printk("Cliente Pegou Pao #%d (Vitrine: %d)\n", paes_pegos, saldo_vitrine);
+		saldo_vitrine = aux1;
+		printk("Cliente Pegou Pao #%d (Vitrine: %d)\n", 
+			    paes_pegos, saldo_vitrine);
 	}
 	else{
 		printk("Cliente quer pao mas nao ha na vitrine\n");
